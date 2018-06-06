@@ -1,10 +1,11 @@
 package com.example.amrit.breathingcues;
 
-import android.content.res.Resources;
+import android.content.Context;
+import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -15,10 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.Timer;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
@@ -34,6 +32,10 @@ public class Breathing extends AppCompatActivity {
     private long holdTimeSec;
     private long timerTimeSec;
     private BreathingState breathingState = BreathingState.PAUSED;
+
+    MediaPlayer beepSound;
+    Vibrator vibrator;
+
     MaterialProgressBar currentActionProgressBar;
     MaterialProgressBar timerProgressBar;
 
@@ -45,8 +47,10 @@ public class Breathing extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         currentActionProgressBar = (MaterialProgressBar) findViewById(R.id.currentActionProgressBar);
-        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerProgressBar);
+        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
 
+        beepSound = MediaPlayer.create(this, R.raw.beep);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         setupSpinner(R.id.inhaleSpinner);
         setupSpinner(R.id.exhaleSpinner);
@@ -81,28 +85,40 @@ public class Breathing extends AppCompatActivity {
         final long cycleTimeSec = inhaleTimeSec + holdTimeSec + exhaleTimeSec;
         final long numberOfCompleteCycles = timerTimeSec / cycleTimeSec;
 
-        timerProgressBar.setMax((int) timerTimeSec);
-        currentActionProgressBar.setMax((int) cycleTimeSec);
+        timerProgressBar.setMax((int) timerTimeSec * 100);
+        currentActionProgressBar.setMax((int) cycleTimeSec * 100);
 
         final TextView actionCommandTextView = (TextView) findViewById(R.id.breathingActionCommandTextView);
         final TextView actionTimerTextView = (TextView) findViewById(R.id.breathingActionTime);
         final TextView clockTextView = (TextView) findViewById(R.id.clockTextView);
         actionTimerTextView.setVisibility(View.VISIBLE);
 
-        timer = new CountDownTimer(timerTimeSec * 1000, 1000) {
+        timer = new CountDownTimer(timerTimeSec * 1000, 10) {
             @Override
             public void onTick(long millisUntilFinished) {
+
                 long millisElapsed = (timerTimeSec * 1000) - millisUntilFinished;
+                long millisElapsedForUI = (timerTimeSec * 1000) - millisUntilFinished;
                 long cycleNumber = (millisElapsed/1000) / (cycleTimeSec);
+                long previousCycleNumber = 0;
 
                 if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < inhaleTimeRangeSec){
-                    breathingState = BreathingState.INHALE;
+                    if (breathingState != BreathingState.INHALE){
+                        beepSound.start();
+                        vibrator.vibrate(500);
+                        breathingState = BreathingState.INHALE;
+                    }
                     long inhaleTimerSec = inhaleTimeSec - ((millisElapsed / 1000) - cycleNumber * cycleTimeSec);
-
                     actionCommandTextView.setText("Inhale");
                     actionTimerTextView.setText(inhaleTimerSec + "");
                 }
                 else if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < holdTimeRangeSec){
+                    if (breathingState != BreathingState.HOLD){
+                        beepSound.start();
+                        breathingState = BreathingState.HOLD;
+                        vibrator.vibrate(500);
+                    }
+
                     breathingState = BreathingState.HOLD;
                     long holdTimerSec = holdTimeSec - ((millisElapsed / 1000) - (cycleNumber * cycleTimeSec) - inhaleTimeRangeSec);
 
@@ -110,6 +126,12 @@ public class Breathing extends AppCompatActivity {
                     actionTimerTextView.setText(holdTimerSec + "");
                 }
                 else if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < exhaleTimeRangeSec){
+                    if (breathingState != BreathingState.EXHALE){
+                        beepSound.start();
+                        breathingState = BreathingState.EXHALE;
+                        vibrator.vibrate(500);
+                    }
+
                     breathingState = BreathingState.EXHALE;
                     long exhaleTimerSec = exhaleTimeSec - ((millisElapsed / 1000) - (cycleNumber * cycleTimeSec) - holdTimeRangeSec);
 
@@ -117,82 +139,30 @@ public class Breathing extends AppCompatActivity {
                     actionTimerTextView.setText(exhaleTimerSec + "");
                 }
 
-                long progressInSec = (millisElapsed/1000) - (cycleNumber * cycleTimeSec);
-                currentActionProgressBar.setProgress((int) progressInSec);
-                timerProgressBar.setProgress((int) (millisElapsed/1000));
 
+                if(previousCycleNumber != cycleNumber){
+                    currentActionProgressBar.setProgress(0);
+                    currentActionProgressBar.setMax((int) timerTimeSec);
+                    previousCycleNumber++;
+                }
+                else{
+                    Log.i("JHJHJHJH","NDJKNJDJBJHDBJHDBJHDBJDHBJHDBDJHBJH");
+                    long progressInSec = (millisElapsedForUI/10) - (cycleNumber * cycleTimeSec);
+                    currentActionProgressBar.setProgress((int) progressInSec);
+                }
 
+                timerProgressBar.setProgress((int) (millisElapsedForUI/10));
                 clockTextView.setText(getTimeMinutesString((int)millisElapsed /1000));
             }
 
             @Override
             public void onFinish() {
                 breathingState = BreathingState.PAUSED;
-                actionCommandTextView.setText("Start");
+                actionCommandTextView.setText("Start Again");
                 actionTimerTextView.setVisibility(View.INVISIBLE);
             }
         }.start();
     }
-
-//    private void startTimer() {
-//        inhaleTimeSec  = getTimeFromSpinner(R.id.inhaleSpinner);
-//        exhaleTimeSec  = getTimeFromSpinner(R.id.exhaleSpinner);
-//        holdTimeSec = getTimeFromSpinner(R.id.holdSpinner);
-//        timerTimeSec = getTimeFromSpinner(R.id.timerSpinner);
-//        breathingState = BreathingState.INHALE;
-//
-//        final int cycleTimeInMillis = (inhaleTimeSec + exhaleTimeSec + holdTimeSec) * 1000;
-//        progressBar.setMax(cycleTimeInMillis);
-//
-//        final TextView actionCommandTextView = (TextView) findViewById(R.id.breathingActionCommandTextView);
-//        final TextView actionTimerTextView = (TextView) findViewById(R.id.breathingActionTime);
-//        actionTimerTextView.setVisibility(View.VISIBLE);
-//
-//        timer = new CountDownTimer(timerTimeSec * 1000, 1000) {
-//            @Override
-//            public void onTick(long millisUntilFinished) {
-//                int millisElapsed = (int) ((timerTimeSec * 1000) - millisUntilFinished);
-//                int cycleNumber = millisElapsed / cycleTimeInMillis;
-//
-//                actionCommandTextView.setText("INHALE");
-//                if ((millisElapsed - (cycleNumber * cycleTimeInMillis)) < inhaleTimeSec) {
-//                    breathingState = BreathingState.INHALE;
-//                    int inhaleTimeElapsedMillis = millisElapsed - (cycleNumber * cycleTimeInMillis);
-//                    int inhaleTimeLeftMillis = (int) (millisUntilFinished - (inhaleTimeElapsedMillis + (cycleNumber * cycleTimeInMillis)));
-//
-//
-//                    actionTimerTextView.setText(inhaleTimeLeftMillis * 1000 + "");
-//                }
-//                else if ((millisElapsed - (cycleNumber * cycleTimeInMillis)) < exhaleTimeSec) {
-//                    breathingState = BreathingState.EXHALE;
-//                    int exhaleTimeElapsedMillis = millisElapsed - (cycleNumber * cycleTimeInMillis) - inhaleTimeSec;
-//                    int exhaleTimeLeftMillis = (int) (millisUntilFinished - (exhaleTimeElapsedMillis + (cycleNumber * cycleTimeInMillis) + inhaleTimeSec));
-//
-//                    actionCommandTextView.setText("EXHALE");
-//                    actionTimerTextView.setText(exhaleTimeLeftMillis * 1000 + "");
-//                }
-//                else if ((millisElapsed - (cycleNumber * cycleTimeInMillis)) < inhaleTimeSec){
-//                    breathingState = BreathingState.EXHALE;
-//                    int holdTimeElapsedMillis = millisElapsed - (cycleNumber * cycleTimeInMillis) - inhaleTimeSec - exhaleTimeSec;
-//                    int holdTimeLeftMillis = (int) (millisUntilFinished - (holdTimeElapsedMillis + (cycleNumber * cycleTimeInMillis) + inhaleTimeSec + exhaleTimeSec));
-//
-//                    actionCommandTextView.setText("EXHALE");
-//                    actionTimerTextView.setText(holdTimeLeftMillis * 1000 + "");
-//                }
-//
-//                int progress = cycleTimeInMillis - inhaleTimeSec * 1000;
-//                progressBar.setProgress((int) (progress));
-//
-//
-//            }
-//
-//            @Override
-//            public void onFinish() {
-//                breathingState = BreathingState.INHALE;
-//            }
-//        }.start();
-//
-//    }
 
 
     private void setupSpinner(int spinnerId) {
@@ -258,6 +228,10 @@ public class Breathing extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            item.getMenuInfo();
+            Intent intent = TimerActivity.makeIntent(Breathing.this);
+            startActivity(intent);
+            timer.cancel();
             return true;
         }
 
