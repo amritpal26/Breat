@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="pref_vibration"
+        android:summary="Turn the vibration On/ Off"
+        android:title="@string/settings_vibration" />
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="pref_sound"
+        android:summary="Turn the sound On/ Off"
+        android:title="@string/settings_sound" />
+</PreferenceScreen>

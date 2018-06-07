@@ -67,26 +67,6 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         return view;
     }
 
-//    @Nullable
-//    @Override
-//    public void onCreate(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_breathing);
-//
-//
-//        currentActionProgressBar = (MaterialProgressBar) view.findViewById(R.id.currentActionProgressBar);
-//        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
-//
-//        beepSound = MediaPlayer.create(this, R.raw.beep);
-//        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-//
-//        setupSpinner(R.id.inhaleSpinner);
-//        setupSpinner(R.id.exhaleSpinner);
-//        setupSpinner(R.id.holdSpinner);
-//        setupSpinner(R.id.timerSpinner);
-//        setupStartClick();
-//    }
-
     private void setupStartClick() {
         final TextView commandTextView = (TextView) view.findViewById(R.id.breathingActionCommandTextView);
 
