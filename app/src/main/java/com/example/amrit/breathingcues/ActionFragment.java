@@ -1,17 +1,22 @@
 package com.example.amrit.breathingcues;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,7 +25,7 @@ import java.util.ArrayList;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
-public class Breathing extends AppCompatActivity {
+public class ActionFragment extends android.support.v4.app.Fragment {
 
     private enum BreathingState{
         PAUSED,INHALE, EXHALE,HOLD
@@ -39,28 +44,51 @@ public class Breathing extends AppCompatActivity {
     MaterialProgressBar currentActionProgressBar;
     MaterialProgressBar timerProgressBar;
 
+    View view;
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_breathing);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        view = inflater.inflate(R.layout.fragment_action, container, false);
 
-        currentActionProgressBar = (MaterialProgressBar) findViewById(R.id.currentActionProgressBar);
-        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
+        currentActionProgressBar = (MaterialProgressBar) view.findViewById(R.id.currentActionProgressBar);
+        timerProgressBar = (MaterialProgressBar) view.findViewById(R.id.timerActivityProgressBar);
 
-        beepSound = MediaPlayer.create(this, R.raw.beep);
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        beepSound = MediaPlayer.create(getActivity(), R.raw.beep);
+        vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 
         setupSpinner(R.id.inhaleSpinner);
         setupSpinner(R.id.exhaleSpinner);
         setupSpinner(R.id.holdSpinner);
         setupSpinner(R.id.timerSpinner);
         setupStartClick();
+
+        return view;
     }
 
+//    @Nullable
+//    @Override
+//    public void onCreate(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_breathing);
+//
+//
+//        currentActionProgressBar = (MaterialProgressBar) view.findViewById(R.id.currentActionProgressBar);
+//        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
+//
+//        beepSound = MediaPlayer.create(this, R.raw.beep);
+//        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+//
+//        setupSpinner(R.id.inhaleSpinner);
+//        setupSpinner(R.id.exhaleSpinner);
+//        setupSpinner(R.id.holdSpinner);
+//        setupSpinner(R.id.timerSpinner);
+//        setupStartClick();
+//    }
+
     private void setupStartClick() {
-        final TextView commandTextView = (TextView) findViewById(R.id.breathingActionCommandTextView);
+        final TextView commandTextView = (TextView) view.findViewById(R.id.breathingActionCommandTextView);
 
         commandTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,9 +116,9 @@ public class Breathing extends AppCompatActivity {
         timerProgressBar.setMax((int) timerTimeSec * 100);
         currentActionProgressBar.setMax((int) cycleTimeSec * 100);
 
-        final TextView actionCommandTextView = (TextView) findViewById(R.id.breathingActionCommandTextView);
-        final TextView actionTimerTextView = (TextView) findViewById(R.id.breathingActionTime);
-        final TextView clockTextView = (TextView) findViewById(R.id.clockTextView);
+        final TextView actionCommandTextView = (TextView) view.findViewById(R.id.breathingActionCommandTextView);
+        final TextView actionTimerTextView = (TextView) view.findViewById(R.id.breathingActionTime);
+        final TextView clockTextView = (TextView) view.findViewById(R.id.clockTextView);
         actionTimerTextView.setVisibility(View.VISIBLE);
 
         timer = new CountDownTimer(timerTimeSec * 1000, 10) {
@@ -146,7 +174,6 @@ public class Breathing extends AppCompatActivity {
                     previousCycleNumber++;
                 }
                 else{
-                    Log.i("JHJHJHJH","NDJKNJDJBJHDBJHDBJHDBJDHBJHDBDJHBJH");
                     long progressInSec = (millisElapsedForUI/10) - (cycleNumber * cycleTimeSec);
                     currentActionProgressBar.setProgress((int) progressInSec);
                 }
@@ -166,7 +193,7 @@ public class Breathing extends AppCompatActivity {
 
 
     private void setupSpinner(int spinnerId) {
-        Spinner spinner = (Spinner) findViewById(spinnerId);
+        Spinner spinner = (Spinner) view.findViewById(spinnerId);
 
         ArrayList <String> stringSecondsList = new ArrayList<String>();
         if (spinnerId != R.id.timerSpinner){
@@ -183,13 +210,13 @@ public class Breathing extends AppCompatActivity {
             }
         }
 
-        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, stringSecondsList);
+        ArrayAdapter adapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, stringSecondsList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
     }
 
     private int getTimeFromSpinner(int spinnerId) {
-        Spinner spinner = (Spinner) findViewById(spinnerId);
+        Spinner spinner = (Spinner) view.findViewById(spinnerId);
         int timeOnSpinner;
         int positionOfItemSelected = spinner.getSelectedItemPosition();
 
@@ -212,29 +239,29 @@ public class Breathing extends AppCompatActivity {
         return timeString;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_breathing, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            item.getMenuInfo();
-            Intent intent = TimerActivity.makeIntent(Breathing.this);
-            startActivity(intent);
-            timer.cancel();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.menu_breathing, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if (id == R.id.action_settings) {
+//            item.getMenuInfo();
+//            Intent intent = TimerActivity.makeIntent(Breathing.this);
+//            startActivity(intent);
+//            timer.cancel();
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
 }

@@ -1,15 +1,18 @@
 package com.example.amrit.breathingcues;
-
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -19,7 +22,7 @@ import java.util.ArrayList;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
-public class TimerActivity extends AppCompatActivity {
+public class TimerFragment extends android.support.v4.app.Fragment {
 
     MaterialProgressBar timerProgressBar;
 
@@ -31,24 +34,42 @@ public class TimerActivity extends AppCompatActivity {
     CountDownTimer timer;
     Spinner timerSpinner;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_timer);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    View view;
 
-        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.fragment_timer, container, false);
+
+        timerProgressBar = (MaterialProgressBar) view.findViewById(R.id.timerActivityProgressBar);
         setupSpinner(R.id.timerActivityTimerSpinner);
         TimerState timerState = TimerState.RUNNING;
 
         setupPauseButton();
         setupPlayButton();
         setupStopButton();
+
+        return view;
     }
 
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_timer);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
+//
+//        timerProgressBar = (MaterialProgressBar) findViewById(R.id.timerActivityProgressBar);
+//        setupSpinner(R.id.timerActivityTimerSpinner);
+//        TimerState timerState = TimerState.RUNNING;
+//
+//        setupPauseButton();
+//        setupPlayButton();
+//        setupStopButton();
+//    }
+
     private void setupPauseButton() {
-        FloatingActionButton pauseBtn = (FloatingActionButton) findViewById(R.id.pause);
+        FloatingActionButton pauseBtn = (FloatingActionButton) view.findViewById(R.id.pause);
         pauseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,7 +82,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     private void setupPlayButton() {
-        FloatingActionButton playBtn = (FloatingActionButton) findViewById(R.id.play);
+        FloatingActionButton playBtn = (FloatingActionButton) view.findViewById(R.id.play);
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,7 +92,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     private void setupStopButton() {
-        FloatingActionButton pauseBtn = (FloatingActionButton) findViewById(R.id.stop);
+        FloatingActionButton pauseBtn = (FloatingActionButton) view.findViewById(R.id.stop);
         pauseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,12 +140,12 @@ public class TimerActivity extends AppCompatActivity {
             secondsStr = "0" + secondsStr;
         }
 
-        TextView timerText = (TextView) findViewById(R.id.timerActivityTimertextView);
+        TextView timerText = (TextView) view.findViewById(R.id.timerActivityTimertextView);
         timerText.setText(minutesUntilFinished + ":" + secondsStr);
     }
 
     private void setupSpinner(int spinnerId) {
-        timerSpinner = (Spinner) findViewById(spinnerId);
+        timerSpinner = (Spinner) view.findViewById(spinnerId);
 
         ArrayList<String> stringSecondsList = new ArrayList<String>();
         int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
@@ -132,13 +153,13 @@ public class TimerActivity extends AppCompatActivity {
             stringSecondsList.add(intSecondsList[i] + " s ");
         }
 
-        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, stringSecondsList);
+        ArrayAdapter adapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, stringSecondsList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timerSpinner.setAdapter(adapter);
     }
 
     private int getTimeFromSpinner(int spinnerId) {
-        Spinner spinner = (Spinner) findViewById(spinnerId);
+        Spinner spinner = (Spinner) view.findViewById(spinnerId);
         int timeOnSpinner;
         int positionOfItemSelected = spinner.getSelectedItemPosition();
         timeOnSpinner = getResources().getIntArray(R.array.secondsListContinous)[positionOfItemSelected];
@@ -147,7 +168,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     public static Intent makeIntent(Context context) {
-        Intent intent = new Intent(context, TimerActivity.class);
+        Intent intent = new Intent(context, TimerFragment.class);
         return intent;
     }
 }
