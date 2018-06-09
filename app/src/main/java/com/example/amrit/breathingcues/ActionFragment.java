@@ -1,14 +1,19 @@
 package com.example.amrit.breathingcues;
 
 import android.app.Fragment;
+import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,7 +24,9 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -27,12 +34,15 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class ActionFragment extends android.support.v4.app.Fragment {
 
-    private enum BreathingState{
-        PAUSED,INHALE, EXHALE,HOLD
+    private final String PREFERENCE_KEY_SOUND_SWITCH = "pref_sound";
+    private final String PREFERENCE_KEY_VIBRATION_SWITCH = "pref_vibration";
+
+    private enum BreathingState {
+        PAUSED, INHALE, EXHALE, HOLD
     }
 
     CountDownTimer timer;
-    private long inhaleTimeSec ;
+    private long inhaleTimeSec;
     private long exhaleTimeSec;
     private long holdTimeSec;
     private long timerTimeSec;
@@ -43,6 +53,10 @@ public class ActionFragment extends android.support.v4.app.Fragment {
 
     MaterialProgressBar currentActionProgressBar;
     MaterialProgressBar timerProgressBar;
+
+    SharedPreferences preferences;
+    boolean soundEnabled;
+    boolean vibrationEnabled;
 
     View view;
 
@@ -58,13 +72,43 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         beepSound = MediaPlayer.create(getActivity(), R.raw.beep);
         vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
+        vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
+
         setupSpinner(R.id.inhaleSpinner);
         setupSpinner(R.id.exhaleSpinner);
         setupSpinner(R.id.holdSpinner);
         setupSpinner(R.id.timerSpinner);
         setupStartClick();
 
+        ViewPager viewPager = getActivity().findViewById(R.id.container);
+        setupOnPageChangeListener();
+
         return view;
+    }
+
+    private void setupOnPageChangeListener() {
+        ViewPager viewPager = getActivity().findViewById(R.id.container);
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 1) {
+                    if (breathingState != BreathingState.PAUSED) {
+                        timer.cancel();
+                    }
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
     }
 
     private void setupStartClick() {
@@ -73,7 +117,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         commandTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(breathingState == BreathingState.PAUSED)
+                if (breathingState == BreathingState.PAUSED)
                     startTimer();
             }
         });
@@ -107,24 +151,26 @@ public class ActionFragment extends android.support.v4.app.Fragment {
 
                 long millisElapsed = (timerTimeSec * 1000) - millisUntilFinished;
                 long millisElapsedForUI = (timerTimeSec * 1000) - millisUntilFinished;
-                long cycleNumber = (millisElapsed/1000) / (cycleTimeSec);
-                long previousCycleNumber = 0;
+                long cycleNumber = (millisElapsed / 1000) / (cycleTimeSec);
 
-                if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < inhaleTimeRangeSec){
-                    if (breathingState != BreathingState.INHALE){
-                        beepSound.start();
-                        vibrator.vibrate(500);
+                if (((millisElapsed / 1000) - (cycleNumber * cycleTimeSec)) < inhaleTimeRangeSec) {
+                    if (breathingState != BreathingState.INHALE) {
+                        if (soundEnabled)
+                            beepSound.start();
+                        if (vibrationEnabled)
+                            vibrator.vibrate(500);
                         breathingState = BreathingState.INHALE;
                     }
                     long inhaleTimerSec = inhaleTimeSec - ((millisElapsed / 1000) - cycleNumber * cycleTimeSec);
                     actionCommandTextView.setText("Inhale");
                     actionTimerTextView.setText(inhaleTimerSec + "");
-                }
-                else if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < holdTimeRangeSec){
-                    if (breathingState != BreathingState.HOLD){
-                        beepSound.start();
+                } else if (((millisElapsed / 1000) - (cycleNumber * cycleTimeSec)) < holdTimeRangeSec) {
+                    if (breathingState != BreathingState.HOLD) {
+                        if (soundEnabled)
+                            beepSound.start();
                         breathingState = BreathingState.HOLD;
-                        vibrator.vibrate(500);
+                        if (vibrationEnabled)
+                            vibrator.vibrate(500);
                     }
 
                     breathingState = BreathingState.HOLD;
@@ -132,12 +178,13 @@ public class ActionFragment extends android.support.v4.app.Fragment {
 
                     actionCommandTextView.setText("Hold");
                     actionTimerTextView.setText(holdTimerSec + "");
-                }
-                else if(((millisElapsed/1000) - (cycleNumber * cycleTimeSec)) < exhaleTimeRangeSec){
-                    if (breathingState != BreathingState.EXHALE){
-                        beepSound.start();
+                } else if (((millisElapsed / 1000) - (cycleNumber * cycleTimeSec)) < exhaleTimeRangeSec) {
+                    if (breathingState != BreathingState.EXHALE) {
+                        if (soundEnabled)
+                            beepSound.start();
                         breathingState = BreathingState.EXHALE;
-                        vibrator.vibrate(500);
+                        if (vibrationEnabled)
+                            vibrator.vibrate(500);
                     }
 
                     breathingState = BreathingState.EXHALE;
@@ -147,19 +194,11 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                     actionTimerTextView.setText(exhaleTimerSec + "");
                 }
 
+                long progressInMillisBy10 = (millisElapsedForUI / 10) - (cycleNumber * cycleTimeSec * 100);
+                currentActionProgressBar.setProgress((int) progressInMillisBy10);
 
-                if(previousCycleNumber != cycleNumber){
-                    currentActionProgressBar.setProgress(0);
-                    currentActionProgressBar.setMax((int) timerTimeSec);
-                    previousCycleNumber++;
-                }
-                else{
-                    long progressInSec = (millisElapsedForUI/10) - (cycleNumber * cycleTimeSec);
-                    currentActionProgressBar.setProgress((int) progressInSec);
-                }
-
-                timerProgressBar.setProgress((int) (millisElapsedForUI/10));
-                clockTextView.setText(getTimeMinutesString((int)millisElapsed /1000));
+                timerProgressBar.setProgress((int) (millisElapsedForUI / 10));
+                clockTextView.setText(getTimeMinutesString((int) millisElapsed / 1000));
             }
 
             @Override
@@ -175,16 +214,15 @@ public class ActionFragment extends android.support.v4.app.Fragment {
     private void setupSpinner(int spinnerId) {
         Spinner spinner = (Spinner) view.findViewById(spinnerId);
 
-        ArrayList <String> stringSecondsList = new ArrayList<String>();
-        if (spinnerId != R.id.timerSpinner){
+        ArrayList<String> stringSecondsList = new ArrayList<String>();
+        if (spinnerId != R.id.timerSpinner) {
             int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
-            for(int i = 0; i < intSecondsList.length; i++){
+            for (int i = 0; i < intSecondsList.length; i++) {
                 stringSecondsList.add(intSecondsList[i] + " s ");
             }
-        }
-        else {
+        } else {
             int[] intSecondsList = getResources().getIntArray(R.array.secondsListTimer);
-            for(int i = 0; i < intSecondsList.length; i++){
+            for (int i = 0; i < intSecondsList.length; i++) {
                 String timerString = getTimeMinutesString(intSecondsList[i]);
                 stringSecondsList.add(timerString);
             }
@@ -218,30 +256,4 @@ public class ActionFragment extends android.support.v4.app.Fragment {
 
         return timeString;
     }
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_breathing, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            item.getMenuInfo();
-//            Intent intent = TimerActivity.makeIntent(Breathing.this);
-//            startActivity(intent);
-//            timer.cancel();
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
 }

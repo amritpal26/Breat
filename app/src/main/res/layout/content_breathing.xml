@@ -75,9 +75,6 @@
                     android:textAlignment="center"
                     android:textSize="24sp"
                     android:visibility="visible" />
-                <!--android:onClick="onClick"-->
-                <!--/>-->
-
 
                 <TextView
                     android:id="@+id/breathingActionTime"

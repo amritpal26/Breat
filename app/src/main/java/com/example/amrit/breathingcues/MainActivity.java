@@ -1,6 +1,9 @@
 package com.example.amrit.breathingcues;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -23,6 +26,8 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+
+
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private LockableViewPager mViewPager;
 
@@ -42,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
     }
-
 
     private void setupViewPager(ViewPager viewPager){
         SectionsPagerAdapter adapter = new SectionsPagerAdapter(getSupportFragmentManager());
