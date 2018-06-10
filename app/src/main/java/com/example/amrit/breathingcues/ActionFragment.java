@@ -218,7 +218,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         if (spinnerId != R.id.timerSpinner) {
             int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
             for (int i = 0; i < intSecondsList.length; i++) {
-                stringSecondsList.add(intSecondsList[i] + " s ");
+                stringSecondsList.add(intSecondsList[i] + " sec");
             }
         } else {
             int[] intSecondsList = getResources().getIntArray(R.array.secondsListTimer);
@@ -228,9 +228,10 @@ public class ActionFragment extends android.support.v4.app.Fragment {
             }
         }
 
-        ArrayAdapter adapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, stringSecondsList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter adapter = new ArrayAdapter(this.getActivity(), R.layout.drop_down_layout, stringSecondsList);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+        spinner.setDropDownWidth(20);
     }
 
     private int getTimeFromSpinner(int spinnerId) {
