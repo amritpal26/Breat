@@ -28,7 +28,7 @@
             tools:ignore="NotSibling" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="160dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
@@ -107,7 +107,7 @@
             android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="@+id/timerActivityProgressBar"
             app:layout_constraintEnd_toEndOf="@+id/timerActivityProgressBar"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/timerActivityProgressBar"
             app:layout_constraintTop_toTopOf="@+id/timerActivityProgressBar" />
     </android.support.constraint.ConstraintLayout>
 

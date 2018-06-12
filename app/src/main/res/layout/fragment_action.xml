@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ActionFragment">
+    tools:context=".ActionFragment"
+    xmlns:tigerlee="http://schemas.android.com/apk/res-auto">
 
-    <!--&lt;!&ndash; TODO: Update blank fragment layout &ndash;&gt;-->
+    <!-- TODO: Update blank fragment layout -->
     <!--<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
         <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
         <!--xmlns:tools="http://schemas.android.com/tools"-->
@@ -14,7 +15,7 @@
         <!--android:layout_height="match_parent"-->
         <!--tools:context=".Breathing">-->
 
-        <!---->
+
 
     <!--</android.support.design.widget.CoordinatorLayout>-->
 
@@ -38,6 +39,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="NotSibling" />
+
+        <!--<com.nex3z.expandablecircleview.ExpandableCircleView-->
+            <!--android:id="@+id/currentActionProgress"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="385dp"-->
+            <!--app:innerColor="@color/colorPrimary"-->
+            <!--app:layout_constraintEnd_toEndOf="parent"-->
+            <!--app:layout_constraintStart_toStartOf="parent"-->
+            <!--app:layout_constraintTop_toTopOf="parent"-->
+            <!--app:progressTextColor="@color/colorAccent"-->
+            <!--app:progressTextSize="32sp"-->
+            <!--app:showProgressText="false"-->
+            <!--/>-->
 
         <me.zhanghai.android.materialprogressbar.MaterialProgressBar
             android:id="@+id/currentActionProgressBar"

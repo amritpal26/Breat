@@ -3,8 +3,10 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -43,6 +45,9 @@ public class TimerFragment extends android.support.v4.app.Fragment {
     CountDownTimer timer;
     Spinner timerSpinner;
 
+    MediaPlayer beepSound;
+    Vibrator vibrator;
+
     SharedPreferences preferences;
     boolean soundEnabled;
     boolean vibrationEnabled;
@@ -60,20 +65,25 @@ public class TimerFragment extends android.support.v4.app.Fragment {
         view = inflater.inflate(R.layout.fragment_timer, container, false);
 
         timerProgressBar = (MaterialProgressBar) view.findViewById(R.id.timerActivityProgressBar);
-        setupSpinner(R.id.timerActivityTimerSpinner);
+
         timerState = TimerState.NEW;
         millisCoveredInPreviousRuns = 0;
+
+        beepSound = MediaPlayer.create(getActivity(), R.raw.beep);
+        vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
         vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
 
+        setupSpinner(R.id.timerActivityTimerSpinner);
         setupPauseButton();
         setupPlayButton();
         setupStopButton();
 
         return view;
     }
+
 
 
     private void setupPauseButton() {
@@ -101,9 +111,11 @@ public class TimerFragment extends android.support.v4.app.Fragment {
                     final long millisToRun = secsToRun * 1000;
                     timerProgressBar.setMax((int) millisToRun);
                     startTimer(millisToRun);
+                    disableSpinners();
                 }
                 else if(timerState == TimerState.PAUSED){
                     startTimer(millisRemaining);
+                    disableSpinners();
                 }
             }
         });
@@ -117,6 +129,7 @@ public class TimerFragment extends android.support.v4.app.Fragment {
                 if(timerState != TimerState.NEW) {
                     timerState = TimerState.STOPPED;
                     onStopTimer(0);
+                    enableSpinners();
                 }
             }
         });
@@ -132,7 +145,7 @@ public class TimerFragment extends android.support.v4.app.Fragment {
         }
 
         ArrayAdapter adapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, stringSecondsList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.drop_down_layout);
         timerSpinner.setAdapter(adapter);
     }
 
@@ -152,6 +165,11 @@ public class TimerFragment extends android.support.v4.app.Fragment {
             @Override
             public void onFinish() {
                 onStopTimer(millisCoveredInPreviousRuns + millisToRun);
+                if (soundEnabled)
+                    beepSound.start();
+                if (vibrationEnabled)
+                    vibrator.vibrate(500);
+                enableSpinners();
 
             }
         }.start();
@@ -192,5 +210,25 @@ public class TimerFragment extends android.support.v4.app.Fragment {
     public static Intent makeIntent(Context context) {
         Intent intent = new Intent(context, TimerFragment.class);
         return intent;
+    }
+
+    private void enableSpinners(){
+        Spinner spinner = (Spinner) view.findViewById(R.id.timerActivityTimerSpinner);
+        spinner.setEnabled(true);
+    }
+
+    private void disableSpinners(){
+        Spinner spinner = (Spinner) view.findViewById(R.id.timerActivityTimerSpinner);
+        spinner.setEnabled(false);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(timerState == TimerState.RUNNING ) {
+            timerState = TimerState.PAUSED;
+            millisCoveredInPreviousRuns += currentTimerTimeMillis;
+            timer.cancel();
+        }
     }
 }
