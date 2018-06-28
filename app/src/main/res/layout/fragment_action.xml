@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tigerlee="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ActionFragment"
-    xmlns:tigerlee="http://schemas.android.com/apk/res-auto">
+    tools:context=".ActionFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <!--<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-        <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-        <!--xmlns:tools="http://schemas.android.com/tools"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--tools:context=".Breathing">-->
-
+    <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+    <!--xmlns:tools="http://schemas.android.com/tools"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--tools:context=".Breathing">-->
 
 
     <!--</android.support.design.widget.CoordinatorLayout>-->
@@ -40,34 +39,34 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="NotSibling" />
 
-        <!--<com.nex3z.expandablecircleview.ExpandableCircleView-->
-            <!--android:id="@+id/currentActionProgress"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="385dp"-->
-            <!--app:innerColor="@color/colorPrimary"-->
-            <!--app:layout_constraintEnd_toEndOf="parent"-->
-            <!--app:layout_constraintStart_toStartOf="parent"-->
-            <!--app:layout_constraintTop_toTopOf="parent"-->
-            <!--app:progressTextColor="@color/colorAccent"-->
-            <!--app:progressTextSize="32sp"-->
-            <!--app:showProgressText="false"-->
-            <!--/>-->
-
-        <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+        <com.nex3z.expandablecircleview.ExpandableCircleView
             android:id="@+id/currentActionProgressBar"
-            style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"
-            android:layout_width="248dp"
-            android:layout_height="248dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/timerActivityProgressBar"
+            android:layout_width="221dp"
+            android:layout_height="221dp"
+            android:layout_marginTop="84dp"
+            app:innerColor="@color/colorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/timerActivityProgressBar"
-            app:layout_constraintVertical_bias="0.534"
-            tools:ignore="NotSibling" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:progressTextColor="@color/colorAccent"
+            app:progressTextSize="32sp"
+            app:showProgressText="false" />
+
+        <!--<me.zhanghai.android.materialprogressbar.MaterialProgressBar-->
+        <!--android:id="@+id/currentActionProgressBar"-->
+        <!--style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"-->
+        <!--android:layout_width="248dp"-->
+        <!--android:layout_height="248dp"-->
+        <!--android:layout_marginBottom="8dp"-->
+        <!--android:layout_marginEnd="8dp"-->
+        <!--android:layout_marginStart="68dp"-->
+        <!--android:layout_marginTop="8dp"-->
+        <!--app:layout_constraintBottom_toBottomOf="@+id/timerActivityProgressBar"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintStart_toStartOf="parent"-->
+        <!--app:layout_constraintTop_toTopOf="@+id/timerActivityProgressBar"-->
+        <!--app:layout_constraintVertical_bias="0.558"-->
+        <!--tools:ignore="NotSibling" />-->
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -112,29 +111,89 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/timerActivityProgressBar">
+
+            <LinearLayout
+                android:id="@+id/timerlayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/timerActivityProgressBar">
+
+                <TextView
+                    android:id="@+id/timerText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/timer"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
+
+                <Spinner
+                    android:id="@+id/timerSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:dropDownWidth="match_parent"
+                    android:spinnerMode="dialog" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/timerActivityProgressBar">
+
+                <TextView
+                    android:id="@+id/clockText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/clock" />
+
+                <TextView
+                    android:id="@+id/clockTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:paddingStart="10dp"
+                    android:text="@string/_00_00" />
+            </LinearLayout>
+        </LinearLayout>
+
         <TableLayout
             android:id="@+id/tableLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.502"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
 
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/timerText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/timer"
-                    android:textAlignment="center"
-                    android:textSize="14sp"/>
 
                 <TextView
                     android:id="@+id/inhaleText"
@@ -142,7 +201,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/inhale"
                     android:textAlignment="center"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/HoldText"
@@ -150,13 +209,21 @@
                     android:layout_height="wrap_content"
                     android:text="@string/hold"
                     android:textAlignment="center"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/exhaleText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/exhale"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/HoldText2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hold"
                     android:textAlignment="center"
                     android:textSize="14sp" />
 
@@ -167,13 +234,6 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="5dp"
                 android:paddingTop="5dp">
-
-                <Spinner
-                    android:id="@+id/timerSpinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:spinnerMode="dialog"
-                    android:dropDownWidth="match_parent"/>
 
                 <Spinner
                     android:id="@+id/inhaleSpinner"
@@ -195,35 +255,15 @@
                     android:layout_height="wrap_content"
                     android:spinnerMode="dialog" />
 
+                <Spinner
+                    android:id="@+id/holdSpinner2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:spinnerMode="dialog" />
+
             </TableRow>
 
         </TableLayout>
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="36dp"
-            android:layout_marginTop="36dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/timerActivityProgressBar">
-
-            <TextView
-                android:id="@+id/clockText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/clock" />
-
-            <TextView
-                android:id="@+id/clockTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingStart="10dp"
-                android:text="@string/_00_00" />
-        </LinearLayout>
 
     </android.support.constraint.ConstraintLayout>
 
