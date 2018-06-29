@@ -139,9 +139,9 @@ public class TimerFragment extends android.support.v4.app.Fragment {
         timerSpinner = (Spinner) view.findViewById(spinnerId);
 
         ArrayList<String> stringSecondsList = new ArrayList<String>();
-        int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
+        int[] intSecondsList = getResources().getIntArray(R.array.secondsListTimer2);
         for(int i = 0; i < intSecondsList.length; i++){
-            stringSecondsList.add(intSecondsList[i] + " s ");
+            stringSecondsList.add(getTimeMinutesString(intSecondsList[i]) + " sec ");
         }
 
         ArrayAdapter adapter = new ArrayAdapter(getActivity(), android.R.layout.simple_spinner_item, stringSecondsList);
@@ -202,7 +202,7 @@ public class TimerFragment extends android.support.v4.app.Fragment {
         Spinner spinner = (Spinner) view.findViewById(spinnerId);
         int timeOnSpinner;
         int positionOfItemSelected = spinner.getSelectedItemPosition();
-        timeOnSpinner = getResources().getIntArray(R.array.secondsListContinous)[positionOfItemSelected];
+        timeOnSpinner = getResources().getIntArray(R.array.secondsListTimer2)[positionOfItemSelected];
 
         return timeOnSpinner;
     }
@@ -230,5 +230,15 @@ public class TimerFragment extends android.support.v4.app.Fragment {
             millisCoveredInPreviousRuns += currentTimerTimeMillis;
             timer.cancel();
         }
+    }
+
+    private String getTimeMinutesString(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        String secondsString = seconds + "";
+        if (seconds < 9)
+            secondsString = "0" + secondsString;
+
+        return minutes + ":" + secondsString;
     }
 }

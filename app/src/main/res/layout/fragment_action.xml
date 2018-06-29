@@ -238,14 +238,14 @@
                 <Spinner
                     android:id="@+id/inhaleSpinner"
                     style=""
-                    android:layout_width="wrap_content"
+                    android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:dropDownWidth="match_parent"
                     android:spinnerMode="dialog" />
 
                 <Spinner
                     android:id="@+id/holdSpinner"
-                    android:layout_width="wrap_content"
+                    android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:spinnerMode="dialog" />
 
