@@ -1,0 +1,26 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/reminder_1">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="reminder_1"
+            android:title="@string/pref_title_reminder_1" />
+
+        <com.example.amrit.breathingcues.TimePreference
+            android:dependency="reminder_1"
+            android:key="timePref_reminder_1"
+            android:title="@string/timePref_reminder_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/reminder_2">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="reminder_2"
+            android:title="@string/pref_title_reminder_2" />
+
+        <com.example.amrit.breathingcues.TimePreference
+            android:dependency="reminder_2"
+            android:key="timePref_reminder_2"
+            android:title="@string/timePref_reminder_title" />
+    </PreferenceCategory>
+</PreferenceScreen>

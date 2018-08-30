@@ -5,6 +5,7 @@ import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -17,6 +18,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,11 +34,20 @@ import android.widget.Toast;
 
 import com.nex3z.expandablecircleview.ExpandableCircleView;
 
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class ActionFragment extends android.support.v4.app.Fragment {
+
+//    private final int PROGRESS_INHALE_COLOR = Color.BLUE;
+    private final int PROGRESS_INHALE_COLOR = Color.rgb(0, 191, 225);
+//    private final int PROGRESS_EXHALE_COLOR = Color.GREEN;
+    private final int PROGRESS_EXHALE_COLOR = Color.rgb(225, 191, 0);
+//    private final int PROGRESS_HOLD_COLOR = Color.RED;
+    private final int PROGRESS_HOLD_COLOR = Color.rgb(191, 255, 0);
 
     public static final String PREFERENCES_NAME = "my_prefs";
     public static final String TIMER_SELECTED_ITEM = "timer_Selected_item";
@@ -53,6 +64,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         NEW_TIMER, PAUSED, INHALE, EXHALE, HOLD
     }
 
+    ViewPager viewPager;
     CountDownTimer timer;
     private long inhaleTimeMillis;
     private long exhaleTimeMillis;
@@ -100,6 +112,8 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
         vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
+        Long time = preferences.getLong("timePref_reminder_1", 0);
+        Log.i("timePref_reminder_1", DateFormat.getTimeFormat(getContext()).format(new Date(time)));
 
         setupSpinner(R.id.inhaleSpinner);
         setupSpinner(R.id.exhaleSpinner);
@@ -108,14 +122,15 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         setupSpinner(R.id.timerSpinner);
         setupStartClick();
 
-        ViewPager viewPager = getActivity().findViewById(R.id.container);
+
+        viewPager = getActivity().findViewById(R.id.container);
         setupOnPageChangeListener();
 
         return view;
     }
 
     private void setupOnPageChangeListener() {
-        ViewPager viewPager = getActivity().findViewById(R.id.container);
+        viewPager = getActivity().findViewById(R.id.container);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -180,7 +195,6 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         timer.cancel();
     }
 
-
     private void startTimer(final long currentTimerMillis) {
         lockSpinners();
         inhaleTimeMillis = getTimeFromSpinnerMillis(R.id.inhaleSpinner);
@@ -220,6 +234,8 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                         if (vibrationEnabled)
                             vibrator.vibrate(500);
                         breathingState = BreathingState.INHALE;
+                        currentActionProgress.setInnerColor(PROGRESS_INHALE_COLOR);
+                        Log.i("COLOR", "inhale");
                     }
                     long inhaleTimerRemainingMillis = (inhaleTimeMillis) - (millisElapsedTotal - (currentCycleNumber * cycleTimeMillis));
 
@@ -237,11 +253,14 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                         if (vibrationEnabled)
                             vibrator.vibrate(500);
                         breathingState = BreathingState.HOLD;
+                        currentActionProgress.setInnerColor(PROGRESS_HOLD_COLOR);
+                        int progress = currentActionProgress.getProgress();
+                        currentActionProgress.setProgress(progress);
+                        actionCommandTextView.setText("Hold");
+                        Log.i("COLOR", "Hold1");
                     }
 
                     long holdTimerRemainingMillis = hold_1_TimeMillis - (millisElapsedTotal - (currentCycleNumber * cycleTimeMillis) - inhaleTimeRangeMillis);
-
-                    actionCommandTextView.setText("Hold");
                     String holdTimerRemainingSec = millisToSecString(holdTimerRemainingMillis);
                     actionTimerTextView.setText(holdTimerRemainingSec);
                 } else if ((millisElapsedTotal - (currentCycleNumber * cycleTimeMillis)) < exhaleTimeRangeMillis) {
@@ -252,6 +271,8 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                             vibrator.vibrate(500);
                         breathingState = BreathingState.EXHALE;
                         actionCommandTextView.setText("Exhale");
+                        currentActionProgress.setInnerColor(PROGRESS_EXHALE_COLOR);
+                        Log.i("COLOR", "exhale");
                     }
 
                     long exhaleTimerRemainingMillis = exhaleTimeMillis - (millisElapsedTotal - (currentCycleNumber * cycleTimeMillis) - hold_1_TimeRangeMillis);
@@ -269,6 +290,10 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                             vibrator.vibrate(500);
                         breathingState = BreathingState.HOLD;
                         actionCommandTextView.setText("Hold");
+                        currentActionProgress.setInnerColor(PROGRESS_HOLD_COLOR);
+                        int progress = currentActionProgress.getProgress();
+                        currentActionProgress.setProgress(progress);
+                        Log.i("COLOR", "Hold");
                     }
 
                     long holdTimerRemainingMillis = hold_2_TimeMillis - (millisElapsedTotal - (currentCycleNumber * cycleTimeMillis) - exhaleTimeRangeMillis);
@@ -324,7 +349,6 @@ public class ActionFragment extends android.support.v4.app.Fragment {
 
         ArrayList<String> stringSecondsList = new ArrayList<String>();
         if (spinnerId != R.id.timerSpinner)
-
         {
             if (spinnerId == R.id.exhaleSpinner || spinnerId == R.id.inhaleSpinner) {
                 int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
@@ -390,8 +414,9 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
         String secondsString = seconds + "";
-        if (seconds < 9)
+        if (seconds < 9) {
             secondsString = "0" + secondsString;
+        }
 
         return minutes + ":" + secondsString;
     }
@@ -424,8 +449,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         hold2_Spinner.setEnabled(true);
     }
 
-    @Override
-    public void onStop() {
+    private void saveSpinnerData(){
         Spinner timerSpinner = (Spinner) view.findViewById(R.id.timerSpinner);
         Spinner inhaleSpinner = (Spinner) view.findViewById(R.id.inhaleSpinner);
         Spinner exhaleSpinner = (Spinner) view.findViewById(R.id.exhaleSpinner);
@@ -440,7 +464,11 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         editor.putInt(HOLD1_SELECTED_ITEM, hold1_Spinner.getSelectedItemPosition());
         editor.putInt(HOLD2_SELECTED_ITEM, hold2_Spinner.getSelectedItemPosition());
         editor.commit();
-//        Toast.makeText(getActivity(), "" + prefs.getInt(TIMER_SELECTED_ITEM, 0), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStop() {
+        saveSpinnerData();
         super.onStop();
     }
 
@@ -450,5 +478,14 @@ public class ActionFragment extends android.support.v4.app.Fragment {
             pauseTimer();
         }
         super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
+        vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
+        Log.i("Call", "onresume: " + soundEnabled + " " + vibrationEnabled);
+        super.onResume();
     }
 }

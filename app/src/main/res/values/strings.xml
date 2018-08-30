@@ -87,7 +87,8 @@
     <!-- Example settings for Notifications -->
     <string name="pref_header_notifications">Notifications</string>
 
-    <string name="pref_title_new_message_notifications">New message notifications</string>
+    <string name="pref_title_reminder_1">Reminder 1</string>
+    <string name="pref_title_reminder_2">Reminder 2</string>
 
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
@@ -97,5 +98,11 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="app_name2">Breathing Cues 2</string>
+    <string name="title_activity_settings2">Settings</string>
+    <string name="reminder_1">Reminder 1</string>
+    <string name="reminder_2">Reminder 2</string>
+    <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
+    <string name="timePref_reminder_title">Set time</string>
 
 </resources>

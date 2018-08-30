@@ -109,6 +109,7 @@
             app:layout_constraintEnd_toEndOf="@+id/timerActivityProgressBar"
             app:layout_constraintStart_toStartOf="@+id/timerActivityProgressBar"
             app:layout_constraintTop_toTopOf="@+id/timerActivityProgressBar" />
+
     </android.support.constraint.ConstraintLayout>
 
     <!--<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
