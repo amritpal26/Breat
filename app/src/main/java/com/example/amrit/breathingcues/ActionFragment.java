@@ -1,13 +1,8 @@
 package com.example.amrit.breathingcues;
 
-import android.app.Fragment;
-import android.arch.lifecycle.Lifecycle;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -16,25 +11,18 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.nex3z.expandablecircleview.ExpandableCircleView;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -42,19 +30,16 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class ActionFragment extends android.support.v4.app.Fragment {
 
-//    private final int PROGRESS_INHALE_COLOR = Color.BLUE;
     private final int PROGRESS_INHALE_COLOR = Color.rgb(0, 191, 225);
-//    private final int PROGRESS_EXHALE_COLOR = Color.GREEN;
     private final int PROGRESS_EXHALE_COLOR = Color.rgb(225, 191, 0);
-//    private final int PROGRESS_HOLD_COLOR = Color.RED;
     private final int PROGRESS_HOLD_COLOR = Color.rgb(191, 255, 0);
 
     public static final String PREFERENCES_NAME = "my_prefs";
     public static final String TIMER_SELECTED_ITEM = "timer_Selected_item";
-    public static final String INHALE_SELECTED_ITEM = "timer_Selected_item";
-    public static final String EXHALE_SELECTED_ITEM = "timer_Selected_item";
-    public static final String HOLD1_SELECTED_ITEM = "timer_Selected_item";
-    public static final String HOLD2_SELECTED_ITEM = "timer_Selected_item";
+    public static final String INHALE_SELECTED_ITEM = "inhale_Selected_item";
+    public static final String EXHALE_SELECTED_ITEM = "exhale_Selected_item";
+    public static final String HOLD1_SELECTED_ITEM = "hold_1_Selected_item";
+    public static final String HOLD2_SELECTED_ITEM = "hold_2_Selected_item";
     private final String PREFERENCE_KEY_SOUND_SWITCH = "pref_sound";
     private final String PREFERENCE_KEY_VIBRATION_SWITCH = "pref_vibration";
 
@@ -73,17 +58,18 @@ public class ActionFragment extends android.support.v4.app.Fragment {
     private long currentRunMillisElapsed;
     private long previousTimerTimeMillis = 0;
     private long timerTimeOnSpinnerMillis;
+    private long timerTimeMillis;
     long currentCycleNumber;
     private BreathingState breathingState = BreathingState.NEW_TIMER;
 
     MediaPlayer beepSound;
-    MediaPlayer endSound;
     Vibrator vibrator;
 
     MaterialProgressBar timerProgressBar;
     ExpandableCircleView currentActionProgress;
 
-    SharedPreferences preferences;
+    SharedPreferences defaultPrefs;
+    SharedPreferences prefs;
     boolean soundEnabled;
     boolean vibrationEnabled;
 
@@ -105,14 +91,13 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         actionTimerTextView.bringToFront();
 
         beepSound = MediaPlayer.create(getActivity(), R.raw.beep);
-        endSound = MediaPlayer.create(getActivity(), R.raw.beep_short_version);
-        endSound.start();
+
         vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
-        vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
-        Long time = preferences.getLong("timePref_reminder_1", 0);
+        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        soundEnabled = defaultPrefs.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
+        vibrationEnabled = defaultPrefs.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
+        Long time = defaultPrefs.getLong("timePref_reminder_1", 0);
         Log.i("timePref_reminder_1", DateFormat.getTimeFormat(getContext()).format(new Date(time)));
 
         setupSpinner(R.id.inhaleSpinner);
@@ -122,11 +107,16 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         setupSpinner(R.id.timerSpinner);
         setupStartClick();
 
-
         viewPager = getActivity().findViewById(R.id.container);
         setupOnPageChangeListener();
 
         return view;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        prefs = this.getActivity().getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
     }
 
     private void setupOnPageChangeListener() {
@@ -161,7 +151,6 @@ public class ActionFragment extends android.support.v4.app.Fragment {
             public void onClick(View v) {
                 if (breathingState == BreathingState.NEW_TIMER)
                     startTimer(0);
-
                 else if (breathingState != BreathingState.PAUSED && breathingState != BreathingState.NEW_TIMER) {
                     pauseTimer();
                 } else if (breathingState == BreathingState.PAUSED) {
@@ -210,29 +199,28 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         final long hold_2_TimeRangeSec = exhaleTimeRangeMillis + hold_2_TimeMillis;
 
         final long cycleTimeMillis = inhaleTimeMillis + hold_1_TimeMillis + exhaleTimeMillis + hold_2_TimeMillis;
+        final long numberOfCycles = (timerTimeOnSpinnerMillis/cycleTimeMillis) + 1;
+        timerTimeMillis = numberOfCycles * cycleTimeMillis;
 
-        timerProgressBar.setMax((int) timerTimeOnSpinnerMillis);
+        timerProgressBar.setMax((int) timerTimeMillis);
 
         final TextView actionCommandTextView = (TextView) view.findViewById(R.id.breathingActionCommandTextView);
         final TextView actionTimerTextView = (TextView) view.findViewById(R.id.breathingActionTime);
         final TextView clockTextView = (TextView) view.findViewById(R.id.clockTextView);
         actionTimerTextView.setVisibility(View.VISIBLE);
 
-        timer = new CountDownTimer((timerTimeOnSpinnerMillis) - previousTimerTimeMillis, 10) {
+        timer = new CountDownTimer((timerTimeMillis) - previousTimerTimeMillis, 10) {
             @Override
             public void onTick(long millisUntilFinished) {
 
-                currentRunMillisElapsed = (timerTimeOnSpinnerMillis) - millisUntilFinished - previousTimerTimeMillis;
+                currentRunMillisElapsed = (timerTimeMillis) - millisUntilFinished - previousTimerTimeMillis;
                 long millisElapsedTotal = currentRunMillisElapsed + previousTimerTimeMillis;
 
                 currentCycleNumber = millisElapsedTotal / cycleTimeMillis;
 
                 if ((millisElapsedTotal - (currentCycleNumber * cycleTimeMillis)) < inhaleTimeRangeMillis) {
                     if (breathingState != BreathingState.INHALE) {
-                        if (soundEnabled)
-                            beepSound.start();
-                        if (vibrationEnabled)
-                            vibrator.vibrate(500);
+                        playSoundAndVibrate(false);
                         breathingState = BreathingState.INHALE;
                         currentActionProgress.setInnerColor(PROGRESS_INHALE_COLOR);
                         Log.i("COLOR", "inhale");
@@ -248,10 +236,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                     actionTimerTextView.setText(inhaleTimerRemainingSec);
                 } else if ((millisElapsedTotal - (currentCycleNumber * cycleTimeMillis)) < hold_1_TimeRangeMillis) {
                     if (breathingState != BreathingState.HOLD) {
-                        if (soundEnabled)
-                            beepSound.start();
-                        if (vibrationEnabled)
-                            vibrator.vibrate(500);
+                        playSoundAndVibrate(false);
                         breathingState = BreathingState.HOLD;
                         currentActionProgress.setInnerColor(PROGRESS_HOLD_COLOR);
                         int progress = currentActionProgress.getProgress();
@@ -265,10 +250,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                     actionTimerTextView.setText(holdTimerRemainingSec);
                 } else if ((millisElapsedTotal - (currentCycleNumber * cycleTimeMillis)) < exhaleTimeRangeMillis) {
                     if (breathingState != BreathingState.EXHALE) {
-                        if (soundEnabled)
-                            beepSound.start();
-                        if (vibrationEnabled)
-                            vibrator.vibrate(500);
+                        playSoundAndVibrate(false);
                         breathingState = BreathingState.EXHALE;
                         actionCommandTextView.setText("Exhale");
                         currentActionProgress.setInnerColor(PROGRESS_EXHALE_COLOR);
@@ -284,10 +266,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                     currentActionProgress.setProgress((int) progress);
                 } else if (((millisElapsedTotal) - (currentCycleNumber * cycleTimeMillis)) < hold_2_TimeRangeSec) {
                     if (breathingState != BreathingState.HOLD) {
-                        if (soundEnabled)
-                            beepSound.start();
-                        if (vibrationEnabled)
-                            vibrator.vibrate(500);
+                        playSoundAndVibrate(false);
                         breathingState = BreathingState.HOLD;
                         actionCommandTextView.setText("Hold");
                         currentActionProgress.setInnerColor(PROGRESS_HOLD_COLOR);
@@ -310,9 +289,9 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                 actionCommandTextView.setText("Start Again");
                 actionTimerTextView.setVisibility(View.INVISIBLE);
                 breathingState = BreathingState.NEW_TIMER;
-                clockTextView.setText(getTimeMinutesString((int) timerTimeOnSpinnerMillis / 1000));
-                timerProgressBar.setProgress((int) timerTimeOnSpinnerMillis);
-                endSound.start();
+                clockTextView.setText(getTimeMinutesString((int) timerTimeMillis / 1000));
+                timerProgressBar.setProgress((int) timerTimeMillis);
+                playSoundAndVibrate(true);
                 unlockSpinners();
             }
         }.start();
@@ -329,18 +308,19 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         Spinner spinner = (Spinner) view.findViewById(spinnerId);
         final TextView actionCommandTextView = (TextView) view.findViewById(R.id.breathingActionCommandTextView);
         final TextView actionTimerTextView = (TextView) view.findViewById(R.id.breathingActionTime);
-        SharedPreferences prefs = getActivity().getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+
+//        Toast.makeText(getActivity(), "" + prefs.getInt(INHALE_SELECTED_ITEM, 0), Toast.LENGTH_SHORT).show();
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (breathingState != BreathingState.NEW_TIMER) {
-
                     actionCommandTextView.setText("Start");
                     actionTimerTextView.setVisibility(View.INVISIBLE);
                     previousTimerTimeMillis = 0;
                 }
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
@@ -348,8 +328,7 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         });
 
         ArrayList<String> stringSecondsList = new ArrayList<String>();
-        if (spinnerId != R.id.timerSpinner)
-        {
+        if (spinnerId != R.id.timerSpinner) {
             if (spinnerId == R.id.exhaleSpinner || spinnerId == R.id.inhaleSpinner) {
                 int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinous);
                 for (int i = 0; i < intSecondsList.length; i++) {
@@ -357,27 +336,25 @@ public class ActionFragment extends android.support.v4.app.Fragment {
                 }
                 ArrayAdapter adapter = new ArrayAdapter(this.getActivity(), R.layout.drop_down_layout, stringSecondsList);
                 spinner.setAdapter(adapter);
-                if(spinnerId == R.id.inhaleSpinner){
+                if (spinnerId == R.id.inhaleSpinner) {
                     spinner.setSelection(prefs.getInt(INHALE_SELECTED_ITEM, 0));
-                } else{
+                } else {
                     spinner.setSelection(prefs.getInt(EXHALE_SELECTED_ITEM, 0));
                 }
-            }
-            else {
+            } else {
                 int[] intSecondsList = getResources().getIntArray(R.array.secondsListContinousHold);
                 for (int i = 0; i < intSecondsList.length; i++) {
                     stringSecondsList.add((float) intSecondsList[i] / 2 + " sec");
                 }
                 ArrayAdapter adapter = new ArrayAdapter(this.getActivity(), R.layout.drop_down_layout, stringSecondsList);
                 spinner.setAdapter(adapter);
-                if(spinnerId == R.id.holdSpinner){
+                if (spinnerId == R.id.holdSpinner) {
                     spinner.setSelection(prefs.getInt(HOLD1_SELECTED_ITEM, 0));
-                } else{
+                } else {
                     spinner.setSelection(prefs.getInt(HOLD2_SELECTED_ITEM, 0));
                 }
             }
-        }
-        else {
+        } else {
             int[] intSecondsList = getResources().getIntArray(R.array.secondsListTimer);
             for (int i = 0; i < intSecondsList.length; i++) {
                 String timerString = getTimeMinutesString(intSecondsList[i]);
@@ -449,42 +426,69 @@ public class ActionFragment extends android.support.v4.app.Fragment {
         hold2_Spinner.setEnabled(true);
     }
 
-    private void saveSpinnerData(){
+    private void saveSpinnerData() {
         Spinner timerSpinner = (Spinner) view.findViewById(R.id.timerSpinner);
         Spinner inhaleSpinner = (Spinner) view.findViewById(R.id.inhaleSpinner);
         Spinner exhaleSpinner = (Spinner) view.findViewById(R.id.exhaleSpinner);
         Spinner hold1_Spinner = (Spinner) view.findViewById(R.id.holdSpinner);
         Spinner hold2_Spinner = (Spinner) view.findViewById(R.id.holdSpinner2);
 
-        SharedPreferences prefs = getActivity().getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor =  prefs.edit();
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
         editor.putInt(TIMER_SELECTED_ITEM, timerSpinner.getSelectedItemPosition());
         editor.putInt(INHALE_SELECTED_ITEM, inhaleSpinner.getSelectedItemPosition());
         editor.putInt(EXHALE_SELECTED_ITEM, exhaleSpinner.getSelectedItemPosition());
         editor.putInt(HOLD1_SELECTED_ITEM, hold1_Spinner.getSelectedItemPosition());
         editor.putInt(HOLD2_SELECTED_ITEM, hold2_Spinner.getSelectedItemPosition());
         editor.commit();
+//        Toast.makeText(getActivity(), prefs.getInt(INHALE_SELECTED_ITEM, 8) + " " + inhaleSpinner.getSelectedItemPosition(), Toast.LENGTH_SHORT).show();
+    }
+
+    private void sendTimeStampToDataBase(){
+        //TODO: implement the function to send the timestamp to the database.
+    }
+
+
+    private void playSoundAndVibrate(boolean isEnd) {
+        if (isEnd) {
+            if (soundEnabled) {
+                beepSound.stop();
+                beepSound = MediaPlayer.create(getActivity(), R.raw.endsound);
+                beepSound.start();
+            }
+            if (vibrationEnabled)
+                vibrator.vibrate(700);
+        }else {
+            if (soundEnabled) {
+                beepSound.stop();
+                beepSound = MediaPlayer.create(getActivity(), R.raw.beep);
+                beepSound.start();
+            }
+            if (vibrationEnabled){
+                vibrator.vibrate(400);
+            }
+        }
     }
 
     @Override
     public void onStop() {
-        saveSpinnerData();
         super.onStop();
     }
 
     @Override
     public void onPause() {
+        super.onPause();
         if (breathingState != BreathingState.PAUSED && breathingState != BreathingState.NEW_TIMER) {
             pauseTimer();
         }
-        super.onPause();
+        saveSpinnerData();
     }
 
     @Override
     public void onResume() {
-        preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        soundEnabled = preferences.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
-        vibrationEnabled = preferences.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
+        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        soundEnabled = defaultPrefs.getBoolean(PREFERENCE_KEY_SOUND_SWITCH, false);
+        vibrationEnabled = defaultPrefs.getBoolean(PREFERENCE_KEY_VIBRATION_SWITCH, false);
         Log.i("Call", "onresume: " + soundEnabled + " " + vibrationEnabled);
         super.onResume();
     }
